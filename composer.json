@@ -1,0 +1,19 @@
+{
+    "name": "ivan/getcourse-api",
+    "description": "Удобный API-клиент для GetCourse",
+    "type": "library",
+    "require": {
+        "php": "^8.2",
+        "saloonphp/saloon": "^3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "GetCourse\\Api\\": "src/"
+        }
+    },
+    "config": {
+        "audit": {
+            "block-insecure": false
+        }
+    }
+}
