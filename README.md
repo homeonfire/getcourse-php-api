@@ -47,6 +47,37 @@ if ($response->successful()) {
 
 ---
 
+## 📝 Встроенное логирование (Отладка)
+
+Библиотека включает в себя встроенный логгер на базе Monolog. Это невероятно полезно для отладки, сборки виджетов аналитики и проверки сырых JSON-ответов от серверов GetCourse (например, чтобы быстро подсмотреть оригинальную дату создания объекта `created_at` прямо из базы GK).
+
+Включить запись логов всех запросов и ответов можно вызовом одного метода `enableLogging()`, передав туда полный путь к файлу лога.
+
+```php
+// Инициализация клиента
+$client = new \GetCourse\Api\GetCourseClient(
+    'your-school.getcourse.ru', 
+    'DEV_KEY', 
+    'API_KEY'
+);
+
+// Включаем логирование и указываем, куда писать файл
+$client->enableLogging(__DIR__ . '/logs/getcourse_api.log');
+
+// Выполняем запрос
+$client->users()->getFields(userId: 12345);
+```
+
+**Пример того, что появится в файле логов:**
+Библиотека автоматически фиксирует метод, полный URL запроса, отправленное тело (body) и полный ответ от сервера.
+
+```text
+[2026-04-16T19:17:00.123456+00:00] getcourse-api.INFO: ➡️ [REQ] GET [https://your-school.getcourse.ru/pl/api/v1/user/get-fields?userId=12345](https://your-school.getcourse.ru/pl/api/v1/user/get-fields?userId=12345) {"body":null} []
+[2026-04-16T19:17:00.654321+00:00] getcourse-api.INFO: ⬅️ [RES] 200 [https://your-school.getcourse.ru/pl/api/v1/user/get-fields?userId=12345](https://your-school.getcourse.ru/pl/api/v1/user/get-fields?userId=12345) {"body":{"success":true,"data":[{"id":12345,"email":"test@mail.ru","created_at":"2026-04-10 12:00:00"}]}} []
+```
+
+---
+
 ## 📚 Доступные ресурсы и методы
 
 API разделено на логические ресурсы. Вызывайте нужный ресурс через методы клиента: `$client->users()`, `$client->deals()` и т.д.
