@@ -19,8 +19,13 @@ class ComposerStaticInite1036c86054fe7740790f99e3c82985f
         ),
         'P' =>
         array (
+            'Psr\\Log\\' => 8,
             'Psr\\Http\\Message\\' => 17,
             'Psr\\Http\\Client\\' => 16,
+        ),
+        'M' =>
+        array (
+            'Monolog\\' => 8,
         ),
         'G' =>
         array (
@@ -36,6 +41,10 @@ class ComposerStaticInite1036c86054fe7740790f99e3c82985f
         array (
             0 => __DIR__ . '/..' . '/saloonphp/saloon/src',
         ),
+        'Psr\\Log\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/psr/log/src',
+        ),
         'Psr\\Http\\Message\\' =>
         array (
             0 => __DIR__ . '/..' . '/psr/http-factory/src',
@@ -44,6 +53,10 @@ class ComposerStaticInite1036c86054fe7740790f99e3c82985f
         'Psr\\Http\\Client\\' =>
         array (
             0 => __DIR__ . '/..' . '/psr/http-client/src',
+        ),
+        'Monolog\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/monolog/monolog/src/Monolog',
         ),
         'GuzzleHttp\\Psr7\\' =>
         array (

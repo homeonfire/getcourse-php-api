@@ -4,15 +4,15 @@ namespace GetCourse\Api;
 
 use Saloon\Http\Connector;
 use Saloon\Http\Auth\TokenAuthenticator;
-use GetCourse\Api\Resources\UserResource;
+use Saloon\Http\PendingRequest;
+use Saloon\Http\Response;
+use Monolog\Logger;
+use Monolog\Handler\StreamHandler;
 
 class GetCourseClient extends Connector
 {
-    /**
-     * @param string $schoolDomain Домен школы, например: my-school.getcourse.ru
-     * @param string $developerKey Ключ Разработчика
-     * @param string $schoolApiKey Ключ Апи Школы
-     */
+    protected ?Logger $internalLogger = null;
+
     public function __construct(
         protected string $schoolDomain,
         protected string $developerKey,
@@ -20,8 +20,43 @@ class GetCourseClient extends Connector
     ) {}
 
     /**
-     * Базовый URL для всех эндпоинтов из OpenAPI схемы
+     * Включить встроенное логирование всех запросов и ответов
+     *
+     * @param string $logFilePath Путь до файла логов (по умолчанию 'getcourse_api.log' в текущей папке)
      */
+    public function enableLogging(string $logFilePath = 'getcourse_api.log'): static
+    {
+        $this->internalLogger = new Logger('getcourse-api');
+        // Пишем логи уровня DEBUG и выше
+        $this->internalLogger->pushHandler(new StreamHandler($logFilePath, Logger::DEBUG));
+
+        return $this;
+    }
+
+    /**
+     * Перехватчик Saloon (срабатывает автоматически при каждом запросе)
+     */
+    public function boot(PendingRequest $pendingRequest): void
+    {
+        if (! $this->internalLogger) {
+            return;
+        }
+
+        // Логируем, что отправляем
+        $pendingRequest->middleware()->onRequest(function (PendingRequest $request) {
+            $this->internalLogger->info("➡️ [REQ] {$request->getMethod()->value} {$request->getUri()}", [
+                'body' => $request->body()?->all(),
+            ]);
+        });
+
+        // Логируем, что получили
+        $pendingRequest->middleware()->onResponse(function (Response $response) {
+            $this->internalLogger->info("⬅️ [RES] {$response->status()} {$response->getPsrRequest()->getUri()}", [
+                'body' => $response->json(),
+            ]);
+        });
+    }
+
     public function resolveBaseUrl(): string
     {
         $domain = rtrim($this->schoolDomain, '/');
@@ -29,17 +64,11 @@ class GetCourseClient extends Connector
         return "https://{$domain}/pl/api/v1";
     }
 
-    /**
-     * Автоматическая сборка Bearer-токена по правилам GetCourse
-     */
     protected function defaultAuth(): TokenAuthenticator
     {
         return new TokenAuthenticator("{$this->developerKey}_{$this->schoolApiKey}");
     }
 
-    /**
-     * Заголовки по умолчанию
-     */
     protected function defaultHeaders(): array
     {
         return [
@@ -48,44 +77,31 @@ class GetCourseClient extends Connector
         ];
     }
 
-    /**
-     * Ресурс для работы с Пользователями
-     */
-    public function users(): UserResource
+    // --- ПОДКЛЮЧЕНИЕ РЕСУРСОВ ---
+
+    public function users(): \GetCourse\Api\Resources\UserResource
     {
-        return new UserResource($this);
+        return new \GetCourse\Api\Resources\UserResource($this);
     }
 
-    /**
-     * Ресурс для работы с Заказами (Deals)
-     */
     public function deals(): \GetCourse\Api\Resources\DealResource
     {
         return new \GetCourse\Api\Resources\DealResource($this);
     }
 
-    /**
-     * Ресурс для работы с Предложениями (Offers)
-     */
     public function offers(): \GetCourse\Api\Resources\OfferResource
     {
         return new \GetCourse\Api\Resources\OfferResource($this);
     }
 
-    /**
-     * Общие методы (школа, группы, тренинги)
-     */
-    public function common(): \GetCourse\Api\Resources\CommonResource
-    {
-        return new \GetCourse\Api\Resources\CommonResource($this);
-    }
-
-    /**
-     * Ресурс для работы с Диалогами
-     */
     public function dialogs(): \GetCourse\Api\Resources\DialogResource
     {
         return new \GetCourse\Api\Resources\DialogResource($this);
+    }
+
+    public function common(): \GetCourse\Api\Resources\CommonResource
+    {
+        return new \GetCourse\Api\Resources\CommonResource($this);
     }
 
     public function lessons(): \GetCourse\Api\Resources\LessonResource
