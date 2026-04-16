@@ -1,5 +1,5 @@
 {
-    "name": "ivan/getcourse-api",
+    "name": "aifire/getcourse-api",
     "description": "Удобный API-клиент для GetCourse",
     "type": "library",
     "require": {
